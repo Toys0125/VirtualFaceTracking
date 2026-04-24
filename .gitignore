@@ -1,0 +1,16 @@
+# Build outputs
+**/bin/
+**/obj/
+artifacts/
+
+# Visual Studio / Rider / IDE state
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and local runtime state
+*.log
+*.state.json
+

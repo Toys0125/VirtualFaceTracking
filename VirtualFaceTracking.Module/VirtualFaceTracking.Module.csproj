@@ -1,0 +1,101 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="VRCFaceTracking.SDK">
+      <HintPath>..\vendor\vrcft\5.4.4.1\VRCFaceTracking.SDK.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VRCFaceTracking.Core">
+      <HintPath>..\vendor\vrcft\5.4.4.1\VRCFaceTracking.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\VirtualFaceTracking.Shared\Abstractions\Interfaces.cs" Link="Shared\Abstractions\Interfaces.cs" />
+    <Compile Include="..\VirtualFaceTracking.Shared\Diagnostics\VirtualTrackerDiagnostics.cs" Link="Shared\Diagnostics\VirtualTrackerDiagnostics.cs" />
+    <Compile Include="..\VirtualFaceTracking.Shared\IPC\PipeEnvelope.cs" Link="Shared\IPC\PipeEnvelope.cs" />
+    <Compile Include="..\VirtualFaceTracking.Shared\Mapping\VirtualExpressionCatalog.cs" Link="Shared\Mapping\VirtualExpressionCatalog.cs" />
+    <Compile Include="..\VirtualFaceTracking.Shared\Mapping\VirtualExpressionMapper.cs" Link="Shared\Mapping\VirtualExpressionMapper.cs" />
+    <Compile Include="..\VirtualFaceTracking.Shared\Persistence\JsonVirtualTrackerStateStore.cs" Link="Shared\Persistence\JsonVirtualTrackerStateStore.cs" />
+    <Compile Include="..\VirtualFaceTracking.Shared\Simulation\VirtualSimulationEngine.cs" Link="Shared\Simulation\VirtualSimulationEngine.cs" />
+    <Compile Include="..\VirtualFaceTracking.Shared\State\ControlFrames.cs" Link="Shared\State\ControlFrames.cs" />
+    <Compile Include="..\VirtualFaceTracking.Shared\State\TrackerRuntimeState.cs" Link="Shared\State\TrackerRuntimeState.cs" />
+    <Compile Include="..\VirtualFaceTracking.Shared\State\TrackerStateReducer.cs" Link="Shared\State\TrackerStateReducer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="virtual-tracker.defaults.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="DeployToCustomLibs" AfterTargets="Build">
+    <PropertyGroup>
+      <AppDataVrcft>$(AppData)\VRCFaceTracking\CustomLibs</AppDataVrcft>
+      <DeployFolder>$(AppDataVrcft)\VirtualFaceTracking</DeployFolder>
+      <GuiBuildOutput>..\VirtualFaceTracking.Gui\bin\$(Configuration)\net10.0-windows\</GuiBuildOutput>
+    </PropertyGroup>
+
+    <MSBuild Projects="..\VirtualFaceTracking.Gui\VirtualFaceTracking.Gui.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration)" />
+
+    <MakeDir Directories="$(AppDataVrcft);$(DeployFolder)" />
+
+    <ItemGroup>
+      <ModulePackageFiles Include="$(TargetPath)" />
+      <ModuleSupportFilesToRemove Include="$(AppDataVrcft)\VirtualFaceTracking.Shared.dll" Condition="Exists('$(AppDataVrcft)\VirtualFaceTracking.Shared.dll')" />
+      <ModuleSupportFilesToRemove Include="$(AppDataVrcft)\VirtualFaceTracking.Shared.pdb" Condition="Exists('$(AppDataVrcft)\VirtualFaceTracking.Shared.pdb')" />
+      <ModuleSupportFilesToRemove Include="$(AppDataVrcft)\Microsoft.Extensions.Logging.Abstractions.dll" Condition="Exists('$(AppDataVrcft)\Microsoft.Extensions.Logging.Abstractions.dll')" />
+      <ModuleSupportFilesToRemove Include="$(AppDataVrcft)\Microsoft.Extensions.DependencyInjection.Abstractions.dll" Condition="Exists('$(AppDataVrcft)\Microsoft.Extensions.DependencyInjection.Abstractions.dll')" />
+      <ModuleSupportFilesToRemove Include="$(AppDataVrcft)\virtual-tracker.defaults.json" Condition="Exists('$(AppDataVrcft)\virtual-tracker.defaults.json')" />
+      <StaleDeployFiles Include="$(DeployFolder)\VirtualFaceTracking.Module.dll" Condition="Exists('$(DeployFolder)\VirtualFaceTracking.Module.dll')" />
+      <StaleDeployFiles Include="$(DeployFolder)\VirtualFaceTracking.Module.pdb" Condition="Exists('$(DeployFolder)\VirtualFaceTracking.Module.pdb')" />
+    </ItemGroup>
+
+    <Delete Files="@(ModuleSupportFilesToRemove)" TreatErrorsAsWarnings="true" />
+    <Delete Files="@(StaleDeployFiles)" TreatErrorsAsWarnings="true" />
+
+    <Copy SourceFiles="@(ModulePackageFiles)"
+          DestinationFiles="@(ModulePackageFiles->'$(AppDataVrcft)\%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+
+    <Copy SourceFiles="$(ProjectDir)virtual-tracker.defaults.json"
+          DestinationFiles="$(DeployFolder)\virtual-tracker.defaults.json"
+          SkipUnchangedFiles="true" />
+
+    <ItemGroup>
+      <GuiPackageFiles Include="$(GuiBuildOutput)**\*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(GuiPackageFiles)"
+          DestinationFiles="@(GuiPackageFiles->'$(DeployFolder)\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+
+    <ItemGroup>
+      <UnexpectedRootFiles Include="$(AppDataVrcft)\VirtualFaceTracking*.dll"
+                           Exclude="$(AppDataVrcft)\VirtualFaceTracking.Module.dll" />
+      <UnexpectedRootFiles Include="$(AppDataVrcft)\virtual-tracker*.json" />
+      <UnexpectedRootFiles Include="$(AppDataVrcft)\Microsoft.Extensions.Logging.Abstractions.dll" Condition="Exists('$(AppDataVrcft)\Microsoft.Extensions.Logging.Abstractions.dll')" />
+      <UnexpectedRootFiles Include="$(AppDataVrcft)\Microsoft.Extensions.DependencyInjection.Abstractions.dll" Condition="Exists('$(AppDataVrcft)\Microsoft.Extensions.DependencyInjection.Abstractions.dll')" />
+    </ItemGroup>
+
+    <Error Condition="!Exists('$(AppDataVrcft)\VirtualFaceTracking.Module.dll')"
+           Text="Module package verification failed: $(AppDataVrcft)\VirtualFaceTracking.Module.dll was not deployed." />
+    <Error Condition="!Exists('$(DeployFolder)\VirtualFaceTracking.Gui.exe')"
+           Text="GUI package verification failed: $(DeployFolder)\VirtualFaceTracking.Gui.exe is missing." />
+    <Error Condition="!Exists('$(DeployFolder)\virtual-tracker.defaults.json')"
+           Text="GUI package verification failed: $(DeployFolder)\virtual-tracker.defaults.json is missing." />
+    <Error Condition="'@(UnexpectedRootFiles)' != ''"
+           Text="Unexpected helper files remain in CustomLibs root: @(UnexpectedRootFiles, ', ')." />
+    <Message Importance="High"
+             Text="Verified VirtualFaceTracking deploy layout: root contains VirtualFaceTracking.Module.dll and GUI assets are staged under $(DeployFolder)." />
+  </Target>
+</Project>

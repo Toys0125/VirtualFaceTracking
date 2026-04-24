@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="VirtualFaceTracking.Gui/VirtualFaceTracking.Gui.csproj" />
+  <Project Path="VirtualFaceTracking.Module/VirtualFaceTracking.Module.csproj" />
+  <Project Path="VirtualFaceTracking.Shared/VirtualFaceTracking.Shared.csproj" />
+  <Project Path="VirtualFaceTracking.Tests/VirtualFaceTracking.Tests.csproj" />
+</Solution>
