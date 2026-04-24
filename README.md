@@ -75,3 +75,7 @@ When deployed, the module expects these files under `%APPDATA%\VRCFaceTracking\C
 
 - Right-click any sliders to reset them.
 - The companion GUI can be launched by the module or started directly.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
