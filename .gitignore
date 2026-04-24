@@ -2,6 +2,7 @@
 **/bin/
 **/obj/
 artifacts/
+vendor/
 
 # Visual Studio / Rider / IDE state
 .vs/
