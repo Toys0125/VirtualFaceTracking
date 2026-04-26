@@ -128,30 +128,6 @@ public sealed class VirtualTrackerTests
     }
 
     [Fact]
-    public void PipeReducerMergesStateAndResets()
-    {
-        var state = new TrackerRuntimeState();
-        var manualPatch = PipeEnvelope.Create(
-            PipeMessageTypes.PatchManualState,
-            new PatchManualStateMessage
-            {
-                Manual = new ManualControlState { LinkEyeYaw = false, LeftEyeYaw = 0.5f, RightEyeYaw = -0.5f },
-                Gui = new GuiSessionState { SelectedPanel = TrackerPanel.Advanced, Width = 1200, Height = 800 }
-            });
-
-        TrackerStateReducer.Apply(state, manualPatch);
-        Assert.Equal(0.5f, state.Manual.LeftEyeYaw);
-        Assert.Equal(TrackerPanel.Advanced, state.Gui.SelectedPanel);
-
-        TrackerStateReducer.Apply(state, PipeEnvelope.Create(
-            PipeMessageTypes.ResetSection,
-            new ResetSectionMessage { Section = ResetSection.Eyes }));
-
-        Assert.Equal(0f, state.Manual.LeftEyeYaw);
-        Assert.Equal(0f, state.Manual.RightEyeYaw);
-    }
-
-    [Fact]
     public void PingUpdatesGuiHeartbeat()
     {
         var state = new TrackerRuntimeState

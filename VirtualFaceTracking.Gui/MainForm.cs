@@ -32,7 +32,6 @@ public sealed class MainForm : Form
 
     private readonly ManualControlState _manual = new();
     private readonly SimulationState _simulation = new();
-    private readonly AdvancedOverrideState _advanced = AdvancedOverrideState.CreateDefault(VirtualExpressionCatalog.AllShapeNames);
     private readonly GuiSessionState _gui = new();
 
     private readonly TabControl _tabs = new() { Dock = DockStyle.Fill };
@@ -62,7 +61,6 @@ public sealed class MainForm : Form
 
     private bool _manualDirty;
     private bool _simulationDirty;
-    private bool _advancedDirty;
     private bool _suppressEvents;
     private bool _layoutApplied;
     private bool _closeRequestedByModule;
@@ -107,7 +105,6 @@ public sealed class MainForm : Form
                 _awaitingInitialHeartbeat = true;
                 _manualDirty = true;
                 _simulationDirty = true;
-                _advancedDirty = true;
                 VirtualTrackerDiagnostics.Write("Gui", "Pipe connected; scheduling heartbeat and full state sync");
                 _ = FlushPendingAsync();
             }
@@ -414,19 +411,6 @@ public sealed class MainForm : Form
                     _simulationDirty = false;
                 }
             }
-
-            if (_advancedDirty)
-            {
-                _advanced.Clamp();
-                var sent = await _client.SendAsync(PipeEnvelope.Create(
-                    PipeMessageTypes.PatchAdvancedOverrides,
-                    new PatchAdvancedOverridesMessage { AdvancedOverrides = _advanced.DeepClone() }));
-                if (sent)
-                {
-                    VirtualTrackerDiagnostics.Write("Gui", "Advanced overrides sent successfully");
-                    _advancedDirty = false;
-                }
-            }
         }
         finally
         {
@@ -496,16 +480,6 @@ public sealed class MainForm : Form
                 _simulation.SimulateFace = state.Simulation.SimulateFace;
             }
 
-            if (!_advancedDirty)
-            {
-                _advanced.Shapes.Clear();
-                foreach (var entry in state.AdvancedOverrides.Shapes)
-                {
-                    _advanced.Shapes[entry.Key] = entry.Value.DeepClone();
-                }
-                _advanced.EnsureCatalog(VirtualExpressionCatalog.AllShapeNames);
-            }
-
             _gui.Left = state.Gui.Left;
             _gui.Top = state.Gui.Top;
             _gui.Width = state.Gui.Width;
@@ -550,10 +524,6 @@ public sealed class MainForm : Form
             slider.ValueLabel.Text = slider.Getter().ToString("0.000");
         }
 
-        foreach (var pair in _overrideToggles)
-        {
-            pair.Value.Checked = _advanced.Shapes[pair.Key].UseOverride;
-        }
 
         foreach (var slider in _overrideSliders.Values)
         {

@@ -16,7 +16,7 @@ The module loads inside VRCFaceTracking, starts or reconnects to the GUI, and ex
 - Windows 10 or Windows 11
 - .NET 10 SDK
 - VRCFaceTracking `5.4.4.1`
-- The bundled VRCFaceTracking SDK binaries in `vendor/vrcft/5.4.4.1`
+- The VRCFaceTracking SDK binaries `VRCFaceTracking.Core.dll`&`VRCFaceTracking.SDK.dll` in `vendor/`
 
 ## Repository Layout
 
