@@ -8,11 +8,11 @@
 
   <ItemGroup>
     <Reference Include="VRCFaceTracking.SDK">
-      <HintPath>..\vendor\vrcft\5.4.4.1\VRCFaceTracking.SDK.dll</HintPath>
+      <HintPath>..\vendor\VRCFaceTracking.SDK.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="VRCFaceTracking.Core">
-      <HintPath>..\vendor\vrcft\5.4.4.1\VRCFaceTracking.Core.dll</HintPath>
+      <HintPath>..\vendor\VRCFaceTracking.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
